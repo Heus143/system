@@ -3,42 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Management System - Login</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Employee Management System | Admin Login</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
 <div class="login-container">
 
+    <div class="login-logo">
+        <i class="fa-solid fa-building"></i>
+    </div>
+
     <h1>Employee Management System</h1>
+
     <h3>Admin Login</h3>
 
-    <form action="/login" method="POST">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash-message">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('login') }}" method="POST">
+
+        <!-- Username -->
 
         <div class="input-box">
+
+            <i class="fa-solid fa-user"></i>
+
             <input
                 type="text"
                 name="username"
                 placeholder="Enter Username"
-                required
-            >
+                required>
+
         </div>
 
+        <!-- Password -->
+
         <div class="input-box">
+
+            <i class="fa-solid fa-lock"></i>
+
             <input
                 type="password"
                 name="password"
                 placeholder="Enter Password"
-                required
-            >
+                required>
+
         </div>
 
         <button type="submit">
+
+            <i class="fa-solid fa-right-to-bracket"></i>
+
             Login
+
         </button>
 
     </form>
+
+    <div class="login-footer">
+
+        <i class="fa-solid fa-shield-halved"></i>
+
+        Secure Admin Portal
+
+    </div>
 
 </div>
 

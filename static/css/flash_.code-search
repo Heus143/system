@@ -1,0 +1,29 @@
+# Query: flash(
+# ContextLines: 1
+
+6 results - 1 file
+
+app.py:
+   76  
+   77:         
+   78  
+
+   80  
+   81:     flash("Invalid Username or Password", "danger")
+   82  
+
+   92  
+   93:     flash("Logged Out Successfully", "success")
+   94  
+
+  253  
+  254:     flash("Employee Added Successfully", "success")
+  255  
+
+  350  
+  351:     flash("Employee Deleted Successfully", "success")
+  352      return redirect(url_for("employees"))
+
+  438  
+  439:     flash("Employee Updated Successfully", "success")
+  440  
