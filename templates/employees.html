@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}
+Employees
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <h1 class="page-title">Employee List</h1>
+
+    <div>
+
+        <a href="{{ url_for('add_employee') }}" class="btn">
+            <i class="fa-solid fa-user-plus"></i>
+            Add Employee
+        </a>
+
+        <a href="{{ url_for('export_excel') }}" class="btn">
+            Excel
+        </a>
+
+        <a href="{{ url_for('export_pdf') }}" class="btn btn-secondary">
+            PDF
+        </a>
+
+    </div>
+
+</div>
+
+<form method="GET"
+      action="{{ url_for('employees') }}"
+      class="search-box">
+
+    <input
+        type="text"
+        name="search"
+        placeholder="Search Employee..."
+        value="{{ search }}">
+
+    <button class="btn">
+        Search
+    </button>
+
+</form>
+
+<br>
+
+<div class="table-container">
+
+<table class="employee-table">
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>Photo</th>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+<th>Department</th>
+<th>Designation</th>
+<th>Salary</th>
+<th>Status</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for emp in employees %}
+
+<tr>
+
+<td>{{ emp.id }}</td>
+
+<td>
+
+{% if emp.image %}
+
+<img src="{{ url_for('static', filename='uploads/' + emp.image) }}"
+width="55"
+height="55"
+style="border-radius:50%;object-fit:cover;">
+
+{% else %}
+
+No Image
+
+{% endif %}
+
+</td>
+
+<td>{{ emp.full_name }}</td>
+
+<td>{{ emp.email }}</td>
+
+<td>{{ emp.phone }}</td>
+
+<td>{{ emp.department }}</td>
+
+<td>{{ emp.designation }}</td>
+
+<td>₹ {{ emp.salary }}</td>
+
+<td>
+
+{% if emp.status=="Active" %}
+
+<span style="color:green;font-weight:bold;">
+Active
+</span>
+
+{% else %}
+
+<span style="color:red;font-weight:bold;">
+Inactive
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+<a href="{{ url_for('edit_employee', id=emp.id) }}"
+class="btn-edit">
+
+<i class="fa-solid fa-pen"></i>
+
+</a>
+
+<a href="{{ url_for('delete_employee', id=emp.id) }}"
+class="btn-delete"
+onclick="return confirm('Delete Employee?')">
+
+<i class="fa-solid fa-trash"></i>
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

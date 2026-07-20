@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Reports</h1>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="icon blue">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="card-info">
+            <h3>Total Employees</h3>
+            <h1>{{ total_employees }}</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon green">
+            <i class="fa-solid fa-building"></i>
+        </div>
+        <div class="card-info">
+            <h3>Departments</h3>
+            <h1>{{ total_departments }}</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon orange">
+            <i class="fa-solid fa-indian-rupee-sign"></i>
+        </div>
+        <div class="card-info">
+            <h3>Average Salary</h3>
+            <h1>₹ {{ "%.2f"|format(avg_salary) }}</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon purple">
+            <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div class="card-info">
+            <h3>Highest Salary</h3>
+            <h1>₹ {{ "%.2f"|format(highest_salary) }}</h1>
+        </div>
+    </div>
+
+</div>
+
+<br>
+
+<div class="dashboard-box">
+
+    <h2>Department Report</h2>
+
+    <table class="employee-table">
+
+        <thead>
+
+            <tr>
+                <th>Department</th>
+                <th>Total Employees</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for row in department_report %}
+
+            <tr>
+                <td>{{ row.department }}</td>
+                <td>{{ row.total }}</td>
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

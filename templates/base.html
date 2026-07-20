@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}Employee Management System{% endblock %}</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+    href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+
+            <i class="fa-solid fa-building"></i>
+
+            <div>
+                <h2>EMS</h2>
+                <small>HR Management</small>
+            </div>
+
+        </div>
+
+        <ul>
+
+            <li>
+
+                <a href="{{ url_for('dashboard') }}">
+                    <i class="fa-solid fa-house"></i>
+                    Dashboard
+                </a>
+
+            </li>
+
+            <li>
+
+                <a href="{{ url_for('employees') }}">
+                    <i class="fa-solid fa-users"></i>
+                    Employees
+                </a>
+
+            </li>
+
+            <li>
+
+                <a href="{{ url_for('add_employee') }}">
+                    <i class="fa-solid fa-user-plus"></i>
+                    Add Employee
+                </a>
+
+            </li>
+
+            <li>
+
+                <a href="{{ url_for('reports') }}">
+                    <i class="fa-solid fa-chart-column"></i>
+                    Reports
+                </a>
+
+            </li>
+
+            <li>
+
+                <a href="/">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Logout
+                </a>
+
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <!-- Main Content -->
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+
+                <h2>Employee Management System</h2>
+
+                <p class="subtitle">
+                    Welcome back, Admin 👋
+                </p>
+
+            </div>
+
+            <div class="top-right">
+
+                <i class="fa-solid fa-bell notification"></i>
+
+                <div class="admin">
+
+                    <div class="avatar">
+                        A
+                    </div>
+
+                    <div>
+
+                        <strong>Administrator</strong>
+
+                        <p>HR Manager</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <section class="content">
+
+            {% block content %}
+
+            {% endblock %}
+
+        </section>
+
+        <footer class="footer">
+
+            © 2026 Employee Management System | Designed by Hemanth Kumar
+
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>

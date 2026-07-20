@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Employee
+{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Edit Employee</h1>
+
+<div class="form-container">
+
+    <form action="{{ url_for('update_employee', id=employee.id) }}"
+          method="POST"
+          enctype="multipart/form-data">
+
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text"
+                   name="full_name"
+                   value="{{ employee.full_name }}"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email"
+                   name="email"
+                   value="{{ employee.email }}"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label>Phone</label>
+            <input type="text"
+                   name="phone"
+                   value="{{ employee.phone }}">
+        </div>
+
+        <div class="form-group">
+            <label>Department</label>
+            <input type="text"
+                   name="department"
+                   value="{{ employee.department }}">
+        </div>
+
+        <div class="form-group">
+            <label>Designation</label>
+            <input type="text"
+                   name="designation"
+                   value="{{ employee.designation }}">
+        </div>
+
+        <div class="form-group">
+            <label>Salary</label>
+            <input type="number"
+                   step="0.01"
+                   name="salary"
+                   value="{{ employee.salary }}">
+        </div>
+
+        <div class="form-group">
+            <label>Hire Date</label>
+            <input type="date"
+                   name="hire_date"
+                   value="{{ employee.hire_date }}">
+        </div>
+
+        <div class="form-group">
+            <label>Address</label>
+            <textarea name="address" rows="4">{{ employee.address }}</textarea>
+        </div>
+
+        <!-- Current Image -->
+        {% if employee.image %}
+        <div class="form-group">
+            <label>Current Image</label><br>
+
+            <img src="{{ url_for('static', filename='uploads/' + employee.image) }}"
+                 width="120"
+                 height="120"
+                 style="border-radius:10px;border:1px solid #ccc;">
+        </div>
+        {% endif %}
+
+        <!-- Upload New Image -->
+        <div class="form-group">
+            <label>Change Image</label>
+            <input type="file"
+                   name="image"
+                   accept="image/*">
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+
+            <label>Status</label>
+
+            <select name="status">
+
+                <option value="Active"
+                    {% if employee.status=="Active" %}selected{% endif %}>
+                    Active
+                </option>
+
+                <option value="Inactive"
+                    {% if employee.status=="Inactive" %}selected{% endif %}>
+                    Inactive
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="form-buttons">
+
+            <button type="submit" class="btn">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Update Employee
+            </button>
+
+            <a href="{{ url_for('employees') }}"
+               class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Dashboard</h1>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="icon blue">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="card-info">
+            <h3>Total Employees</h3>
+            <h1>{{ total_employees }}</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon green">
+            <i class="fa-solid fa-building"></i>
+        </div>
+        <div class="card-info">
+            <h3>Departments</h3>
+            <h1>{{ total_departments }}</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon orange">
+            <i class="fa-solid fa-indian-rupee-sign"></i>
+        </div>
+        <div class="card-info">
+            <h3>Average Salary</h3>
+            <h1>₹ {{ "%.2f"|format(avg_salary) }}</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon purple">
+            <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div class="card-info">
+            <h3>Highest Salary</h3>
+            <h1>₹ {{ "%.2f"|format(highest_salary) }}</h1>
+        </div>
+    </div>
+
+</div>
+
+<div class="dashboard-box">
+
+    <h2>Recent Employees</h2>
+
+    <table class="employee-table">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Designation</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for emp in recent_employees %}
+
+            <tr>
+                <td>{{ emp.full_name }}</td>
+                <td>{{ emp.department }}</td>
+                <td>{{ emp.designation }}</td>
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<br>
+
+<div class="dashboard-box">
+
+    <h2>Quick Actions</h2>
+
+    <br>
+
+    <div class="action-buttons">
+
+        <a href="{{ url_for('add_employee') }}" class="btn">
+            <i class="fa-solid fa-user-plus"></i> Add Employee
+        </a>
+
+        <a href="{{ url_for('employees') }}" class="btn">
+            <i class="fa-solid fa-users"></i> View Employees
+        </a>
+
+        <a href="{{ url_for('reports') }}" class="btn">
+            <i class="fa-solid fa-chart-line"></i> Reports
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

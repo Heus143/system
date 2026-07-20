@@ -1,0 +1,1 @@
+console.log("Employee Management System Loaded Successfully!");
