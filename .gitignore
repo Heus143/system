@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+
+employees.pdf
+employees.xlsx
+
+static/uploads/
+
+.vscode/
+.idea/
+.env
