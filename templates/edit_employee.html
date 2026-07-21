@@ -10,7 +10,7 @@ Edit Employee
 
 <div class="form-container">
 
-    <form action="{{ url_for('update_employee', id=employee.id) }}"
+    <form action="{{ url_for('update_employee', id=employee._id) }}"
           method="POST"
           enctype="multipart/form-data">
 
@@ -71,7 +71,6 @@ Edit Employee
             <textarea name="address" rows="4">{{ employee.address }}</textarea>
         </div>
 
-        <!-- Current Image -->
         {% if employee.image %}
         <div class="form-group">
             <label>Current Image</label><br>
@@ -83,7 +82,6 @@ Edit Employee
         </div>
         {% endif %}
 
-        <!-- Upload New Image -->
         <div class="form-group">
             <label>Change Image</label>
             <input type="file"
@@ -91,7 +89,6 @@ Edit Employee
                    accept="image/*">
         </div>
 
-        <!-- Status -->
         <div class="form-group">
 
             <label>Status</label>

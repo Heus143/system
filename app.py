@@ -9,19 +9,31 @@ from flask import (
     send_file
 )
 
-import mysql.connector
-import pandas as pd
-import os
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 from werkzeug.utils import secure_filename
 
+from io import BytesIO
+
+import pandas as pd
+import os
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle
+)
 
 app = Flask(__name__)
 
 app.secret_key = "employee_management_system"
+
+# ===============================
+# Upload Folder
+# ===============================
 
 UPLOAD_FOLDER = "static/uploads"
 
@@ -30,23 +42,32 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# ---------------- MySQL Connection ----------------
+# ===============================
+# MongoDB Connection
+# ===============================
 
-db = mysql.connector.connect(
-    host="127.0.0.1",
-    user="root",
-    password="HEMUs@1234",
-    database="employee_db"
-)
+MONGO_URI = "mongodb+srv://hemu37731_db_user:HEMANTHDIVVELA@cluster0.shbmhyx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
-# ---------------- Home ----------------
+client = MongoClient(MONGO_URI)
+
+db = client["employee_db"]
+
+employees_collection = db["employees"]
+
+admin_collection = db["admin"]
+
+# ===============================
+# Home
+# ===============================
 
 @app.route("/")
 def home():
     return render_template("login.html")
 
 
-# ---------------- Login ----------------
+# ===============================
+# Login
+# ===============================
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -54,21 +75,12 @@ def login():
     username = request.form["username"]
     password = request.form["password"]
 
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute(
-        """
-        SELECT *
-        FROM admin
-        WHERE username=%s
-        AND password=%s
-        """,
-        (username, password)
+    admin = admin_collection.find_one(
+        {
+            "username": username,
+            "password": password
+        }
     )
-
-    admin = cursor.fetchone()
-
-    cursor.close()
 
     if admin:
 
@@ -83,7 +95,9 @@ def login():
     return redirect(url_for("home"))
 
 
-# ---------------- Logout ----------------
+# ===============================
+# Logout
+# ===============================
 
 @app.route("/logout")
 def logout():
@@ -93,9 +107,9 @@ def logout():
     flash("Logged Out Successfully", "success")
 
     return redirect(url_for("home"))
-
-
-# ---------------- Dashboard ----------------
+# ===============================
+# Dashboard
+# ===============================
 
 @app.route("/dashboard")
 def dashboard():
@@ -103,95 +117,127 @@ def dashboard():
     if "admin" not in session:
         return redirect(url_for("home"))
 
-    cursor = db.cursor(dictionary=True)
+    total_employees = employees_collection.count_documents({})
 
-    # Total Employees
-    cursor.execute("SELECT COUNT(*) AS total FROM employees")
-    total_employees = cursor.fetchone()["total"]
+    departments = employees_collection.distinct("department")
 
-    # Departments
-    cursor.execute("SELECT COUNT(DISTINCT department) AS total FROM employees")
-    total_departments = cursor.fetchone()["total"]
+    total_departments = len(departments)
 
-    # Average Salary
-    cursor.execute("SELECT AVG(salary) AS avg_salary FROM employees")
-    avg_salary = cursor.fetchone()["avg_salary"] or 0
+    employees = list(employees_collection.find())
 
-    # Highest Salary
-    cursor.execute("SELECT MAX(salary) AS highest_salary FROM employees")
-    highest_salary = cursor.fetchone()["highest_salary"] or 0
+    if employees:
 
-    # Lowest Salary
-    cursor.execute("SELECT MIN(salary) AS lowest_salary FROM employees")
-    lowest_salary = cursor.fetchone()["lowest_salary"] or 0
+        salaries = [
+            float(emp.get("salary", 0) or 0)
+            for emp in employees
+        ]
 
-    # Recent Employees
-    cursor.execute("""
-        SELECT *
-        FROM employees
-        ORDER BY id DESC
-        LIMIT 5
-    """)
-    recent_employees = cursor.fetchall()
+        avg_salary = sum(salaries) / len(salaries)
 
-    # Department Count
-    cursor.execute("""
-        SELECT department,
-               COUNT(*) AS total
-        FROM employees
-        GROUP BY department
-    """)
+        highest_salary = max(salaries)
 
-    department_data = cursor.fetchall()
+        lowest_salary = min(salaries)
 
-    departments = []
+    else:
+
+        avg_salary = 0
+
+        highest_salary = 0
+
+        lowest_salary = 0
+
+    recent_employees = list(
+
+        employees_collection.find()
+
+        .sort("_id", -1)
+
+        .limit(5)
+
+    )
+
     department_counts = []
 
-    for row in department_data:
-        departments.append(row["department"])
-        department_counts.append(row["total"])
+    for dept in departments:
 
-    cursor.close()
+        department_counts.append(
+
+            employees_collection.count_documents(
+
+                {
+
+                    "department": dept
+
+                }
+
+            )
+
+        )
 
     return render_template(
+
         "dashboard.html",
+
         total_employees=total_employees,
+
         total_departments=total_departments,
-        avg_salary=round(avg_salary,2),
+
+        avg_salary=round(avg_salary, 2),
+
         highest_salary=highest_salary,
+
         lowest_salary=lowest_salary,
+
         recent_employees=recent_employees,
+
         departments=departments,
+
         department_counts=department_counts
+
     )
 
 
-# ---------------- Add Employee ----------------
+# ===============================
+# Add Employee
+# ===============================
 
 @app.route("/add_employee")
 def add_employee():
 
     if "admin" not in session:
+
         return redirect(url_for("home"))
 
     return render_template("add_employee.html")
 
-# ---------------- Save Employee ----------------
+
+# ===============================
+# Save Employee
+# ===============================
 
 @app.route("/save_employee", methods=["POST"])
 def save_employee():
 
     if "admin" not in session:
+
         return redirect(url_for("home"))
 
     full_name = request.form["full_name"]
+
     email = request.form["email"]
+
     phone = request.form["phone"]
+
     department = request.form["department"]
+
     designation = request.form["designation"]
+
     salary = request.form["salary"]
+
     hire_date = request.form["hire_date"]
+
     address = request.form["address"]
+
     status = request.form["status"]
 
     image = ""
@@ -205,57 +251,51 @@ def save_employee():
             filename = secure_filename(file.filename)
 
             file.save(
+
                 os.path.join(
+
                     app.config["UPLOAD_FOLDER"],
+
                     filename
+
                 )
+
             )
 
             image = filename
 
-    cursor = db.cursor()
+    employee = {
 
-    sql = """
-    INSERT INTO employees
-    (
-        full_name,
-        email,
-        phone,
-        department,
-        designation,
-        salary,
-        hire_date,
-        address,
-        image,
-        status
-    )
-    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-    """
+        "full_name": full_name,
 
-    values = (
-        full_name,
-        email,
-        phone,
-        department,
-        designation,
-        salary,
-        hire_date,
-        address,
-        image,
-        status
-    )
+        "email": email,
 
-    cursor.execute(sql, values)
+        "phone": phone,
 
-    db.commit()
+        "department": department,
 
-    cursor.close()
+        "designation": designation,
+
+        "salary": float(salary) if salary else 0,
+
+        "hire_date": hire_date,
+
+        "address": address,
+
+        "image": image,
+
+        "status": status
+
+    }
+
+    employees_collection.insert_one(employee)
 
     flash("Employee Added Successfully", "success")
 
     return redirect(url_for("employees"))
-
-# ---------------- View Employee ----------------
+# =====================================================
+# View Employees
+# =====================================================
 
 @app.route("/employees")
 def employees():
@@ -263,41 +303,48 @@ def employees():
     if "admin" not in session:
         return redirect(url_for("home"))
 
-    search = request.args.get("search", "")
-
-    cursor = db.cursor(dictionary=True)
+    search = request.args.get("search", "").strip()
 
     if search:
 
-        value = "%" + search + "%"
-
-        cursor.execute(
-            """
-            SELECT *
-            FROM employees
-            WHERE
-            full_name LIKE %s
-            OR email LIKE %s
-            OR department LIKE %s
-            OR designation LIKE %s
-            ORDER BY id DESC
-            """,
-            (value, value, value, value)
+        employee_list = list(
+            employees_collection.find(
+                {
+                    "$or": [
+                        {
+                            "full_name": {
+                                "$regex": search,
+                                "$options": "i"
+                            }
+                        },
+                        {
+                            "email": {
+                                "$regex": search,
+                                "$options": "i"
+                            }
+                        },
+                        {
+                            "department": {
+                                "$regex": search,
+                                "$options": "i"
+                            }
+                        },
+                        {
+                            "designation": {
+                                "$regex": search,
+                                "$options": "i"
+                            }
+                        }
+                    ]
+                }
+            ).sort("_id", -1)
         )
 
     else:
 
-        cursor.execute(
-            """
-            SELECT *
-            FROM employees
-            ORDER BY id DESC
-            """
+        employee_list = list(
+            employees_collection.find().sort("_id", -1)
         )
-
-    employee_list = cursor.fetchall()
-
-    cursor.close()
 
     return render_template(
         "employees.html",
@@ -305,81 +352,68 @@ def employees():
         search=search
     )
 
-# ---------------- Edit Employee ----------------
 
-@app.route("/edit_employee/<int:id>")
+# =====================================================
+# Edit Employee
+# =====================================================
+
+@app.route("/edit_employee/<id>")
 def edit_employee(id):
 
     if "admin" not in session:
         return redirect(url_for("home"))
 
-    cursor = db.cursor(dictionary=True)
+    try:
 
-    cursor.execute(
-        "SELECT * FROM employees WHERE id=%s",
-        (id,)
-    )
+        employee = employees_collection.find_one(
+            {
+                "_id": ObjectId(id)
+            }
+        )
 
-    employee = cursor.fetchone()
+        if employee is None:
+            flash("Employee Not Found", "danger")
+            return redirect(url_for("employees"))
 
-    cursor.close()
+    except Exception:
+
+        flash("Invalid Employee ID", "danger")
+        return redirect(url_for("employees"))
 
     return render_template(
         "edit_employee.html",
         employee=employee
     )
 
-# ---------------- Delete Employee ----------------
 
-@app.route("/delete_employee/<int:id>")
-def delete_employee(id):
+# =====================================================
+# Update Employee
+# =====================================================
 
-    if "admin" not in session:
-        return redirect(url_for("home"))
-
-    cursor = db.cursor()
-
-    cursor.execute(
-        "DELETE FROM employees WHERE id=%s",
-        (id,)
-    )
-
-    db.commit()
-
-    cursor.close()
-
-    flash("Employee Deleted Successfully", "success")
-    return redirect(url_for("employees"))
-
-# ---------------- Update Employee -----------------
-
-
-@app.route("/update_employee/<int:id>", methods=["POST"])
+@app.route("/update_employee/<id>", methods=["POST"])
 def update_employee(id):
 
     if "admin" not in session:
         return redirect(url_for("home"))
 
-    full_name = request.form["full_name"]
-    email = request.form["email"]
-    phone = request.form["phone"]
-    department = request.form["department"]
-    designation = request.form["designation"]
-    salary = request.form["salary"]
-    hire_date = request.form["hire_date"]
-    address = request.form["address"]
-    status = request.form["status"]
+    try:
 
-    cursor = db.cursor(dictionary=True)
+        employee = employees_collection.find_one(
+            {
+                "_id": ObjectId(id)
+            }
+        )
 
-    cursor.execute(
-        "SELECT image FROM employees WHERE id=%s",
-        (id,)
-    )
+        if employee is None:
+            flash("Employee Not Found", "danger")
+            return redirect(url_for("employees"))
 
-    employee = cursor.fetchone()
+    except Exception:
 
-    image = employee["image"]
+        flash("Invalid Employee ID", "danger")
+        return redirect(url_for("employees"))
+
+    image = employee.get("image", "")
 
     if "image" in request.files:
 
@@ -398,49 +432,74 @@ def update_employee(id):
 
             image = filename
 
-    cursor = db.cursor()
+    employees_collection.update_one(
 
-    sql = """
-    UPDATE employees
-    SET
-        full_name=%s,
-        email=%s,
-        phone=%s,
-        department=%s,
-        designation=%s,
-        salary=%s,
-        hire_date=%s,
-        address=%s,
-        image=%s,
-        status=%s
-    WHERE id=%s
-    """
+        {
+            "_id": ObjectId(id)
+        },
 
-    values = (
-        full_name,
-        email,
-        phone,
-        department,
-        designation,
-        salary,
-        hire_date,
-        address,
-        image,
-        status,
-        id
+        {
+            "$set": {
+
+                "full_name": request.form["full_name"],
+
+                "email": request.form["email"],
+
+                "phone": request.form["phone"],
+
+                "department": request.form["department"],
+
+                "designation": request.form["designation"],
+
+                "salary": float(request.form["salary"])
+                if request.form["salary"] else 0,
+
+                "hire_date": request.form["hire_date"],
+
+                "address": request.form["address"],
+
+                "status": request.form["status"],
+
+                "image": image
+
+            }
+        }
+
     )
-
-    cursor.execute(sql, values)
-
-    db.commit()
-
-    cursor.close()
 
     flash("Employee Updated Successfully", "success")
 
     return redirect(url_for("employees"))
 
- # ---------------- Reports----------------
+
+# =====================================================
+# Delete Employee
+# =====================================================
+
+@app.route("/delete_employee/<id>")
+def delete_employee(id):
+
+    if "admin" not in session:
+        return redirect(url_for("home"))
+
+    try:
+
+        employees_collection.delete_one(
+            {
+                "_id": ObjectId(id)
+            }
+        )
+
+        flash("Employee Deleted Successfully", "success")
+
+    except Exception:
+
+        flash("Employee Not Found", "danger")
+
+    return redirect(url_for("employees"))
+# =====================================================
+# Reports
+# =====================================================
 
 @app.route("/reports")
 def reports():
@@ -448,117 +507,211 @@ def reports():
     if "admin" not in session:
         return redirect(url_for("home"))
 
-    cursor = db.cursor(dictionary=True)
+    employees = list(employees_collection.find())
 
-    cursor.execute("SELECT COUNT(*) total FROM employees")
-    total_employees = cursor.fetchone()["total"]
+    total_employees = len(employees)
 
-    cursor.execute("SELECT COUNT(DISTINCT department) total FROM employees")
-    total_departments = cursor.fetchone()["total"]
+    departments = employees_collection.distinct("department")
 
-    cursor.execute("SELECT AVG(salary) avg_salary FROM employees")
-    avg_salary = cursor.fetchone()["avg_salary"] or 0
+    total_departments = len(departments)
 
-    cursor.execute("SELECT MAX(salary) highest_salary FROM employees")
-    highest_salary = cursor.fetchone()["highest_salary"] or 0
+    if employees:
 
-    cursor.execute("SELECT MIN(salary) lowest_salary FROM employees")
-    lowest_salary = cursor.fetchone()["lowest_salary"] or 0
+        salaries = [
+            float(emp.get("salary", 0) or 0)
+            for emp in employees
+        ]
 
-    cursor.execute("""
-        SELECT department,
-               COUNT(*) total
-        FROM employees
-        GROUP BY department
-    """)
+        avg_salary = sum(salaries) / len(salaries)
 
-    department_report = cursor.fetchall()
+        highest_salary = max(salaries)
 
-    cursor.close()
+        lowest_salary = min(salaries)
+
+    else:
+
+        avg_salary = 0
+        highest_salary = 0
+        lowest_salary = 0
+
+    department_report = []
+
+    for dept in departments:
+
+        department_report.append({
+
+            "department": dept,
+
+            "total": employees_collection.count_documents(
+                {
+                    "department": dept
+                }
+            )
+
+        })
 
     return render_template(
+
         "reports.html",
+
         total_employees=total_employees,
+
         total_departments=total_departments,
-        avg_salary=round(avg_salary,2),
+
+        avg_salary=round(avg_salary, 2),
+
         highest_salary=highest_salary,
+
         lowest_salary=lowest_salary,
+
         department_report=department_report
+
     )
- # ---------------- Excel----------------
+
+
+# =====================================================
+# Export Excel
+# =====================================================
+
 @app.route("/export_excel")
 def export_excel():
 
     if "admin" not in session:
         return redirect(url_for("home"))
 
-    cursor = db.cursor(dictionary=True)
+    employees = list(
 
-    cursor.execute("""
-        SELECT full_name,email,phone,department,designation,salary,hire_date,status
-        FROM employees
-    """)
+        employees_collection.find(
+            {},
+            {
+                "_id": 0
+            }
+        )
 
-    data = cursor.fetchall()
-    cursor.close()
-
-    df = pd.DataFrame(data)
-
-    filepath = "employees.xlsx"
-    df.to_excel(filepath, index=False, engine="openpyxl")
-
-    return send_file(
-        filepath,
-        as_attachment=True,
-        download_name="employees.xlsx"
     )
 
- # ---------------- Export Employees to PDF ----------------
+    df = pd.DataFrame(employees)
+
+    filepath = "employees.xlsx"
+
+    df.to_excel(
+        filepath,
+        index=False,
+        engine="openpyxl"
+    )
+
+    return send_file(
+
+        filepath,
+
+        as_attachment=True,
+
+        download_name="employees.xlsx"
+
+    )
+
+
+# =====================================================
+# Export PDF
+# =====================================================
+
 @app.route("/export_pdf")
 def export_pdf():
 
     if "admin" not in session:
         return redirect(url_for("home"))
 
-    cursor = db.cursor()
+    employees = list(
 
-    cursor.execute("""
-        SELECT full_name,email,phone,department,designation,salary,status
-        FROM employees
-    """)
+        employees_collection.find()
 
-    employees = cursor.fetchall()
-    cursor.close()
+    )
 
     filepath = "employees.pdf"
 
-    pdf = SimpleDocTemplate(filepath, pagesize=letter)
+    pdf = SimpleDocTemplate(
+
+        filepath,
+
+        pagesize=letter
+
+    )
 
     data = [[
-        "Name","Email","Phone",
-        "Department","Designation",
-        "Salary","Status"
+
+        "Name",
+
+        "Email",
+
+        "Phone",
+
+        "Department",
+
+        "Designation",
+
+        "Salary",
+
+        "Status"
+
     ]]
 
-    for row in employees:
-        data.append(list(row))
+    for emp in employees:
+
+        data.append([
+
+            emp.get("full_name", ""),
+
+            emp.get("email", ""),
+
+            emp.get("phone", ""),
+
+            emp.get("department", ""),
+
+            emp.get("designation", ""),
+
+            emp.get("salary", ""),
+
+            emp.get("status", "")
+
+        ])
 
     table = Table(data)
 
-    table.setStyle(TableStyle([
-        ('BACKGROUND',(0,0),(-1,0),colors.darkblue),
-        ('TEXTCOLOR',(0,0),(-1,0),colors.white),
-        ('GRID',(0,0),(-1,-1),1,colors.black),
-        ('BACKGROUND',(0,1),(-1,-1),colors.beige),
-        ('ALIGN',(0,0),(-1,-1),'CENTER')
-    ]))
+    table.setStyle(
+
+        TableStyle([
+
+            ("BACKGROUND", (0, 0), (-1, 0), colors.darkblue),
+
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+
+            ("GRID", (0, 0), (-1, -1), 1, colors.black),
+
+            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+
+            ("ALIGN", (0, 0), (-1, -1), "CENTER")
+
+        ])
+
+    )
 
     pdf.build([table])
 
     return send_file(
+
         filepath,
+
         as_attachment=True,
+
         download_name="employees.pdf"
+
     )
+
+
+# =====================================================
+# Run Flask App
+# =====================================================
+
 if __name__ == "__main__":
-    app.run(debug=True) 
+
+    app.run(debug=True)
