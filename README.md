@@ -1,142 +1,183 @@
-# 👨‍💼 Employee Management System
+# 🚀 Employee Management System
 
-A full-stack Employee Management System developed using the MERN Stack that enables efficient employee record management with secure CRUD operations and a responsive user interface.
+A modern **Employee Management System** built using **Python, Flask, and MongoDB Atlas**. This application enables administrators to securely manage employee records with complete CRUD functionality, dashboard analytics, reports, and export features.
 
 ---
 
-## 🚀 Features
+## 📌 Features
 
-- Employee Registration
-- View Employee List
-- Update Employee Details
-- Delete Employee Records
-- Search Employees
-- Responsive Dashboard
-- Form Validation
-- REST API Integration
+- 🔐 Secure Admin Login
+- 👨‍💼 Add Employee
+- ✏️ Edit Employee Details
+- 🗑️ Delete Employee
+- 🔍 Search Employee
+- 📊 Dashboard Analytics
+- 🏢 Department-wise Reports
+- 💰 Salary Statistics
+- 📄 Export Reports to PDF
+- 📊 Export Data to Excel
+- 🖼️ Employee Image Upload
+- ☁️ Cloud Database using MongoDB Atlas
+- 🌐 Deployed on Render
 
 ---
 
 ## 🛠️ Technologies Used
 
-### Frontend
-- React.js
-- HTML5
-- CSS3
-- Bootstrap
-- JavaScript
+### 🎨 Frontend
 
-### Backend
-- Node.js
-- Express.js
+- 🌐 HTML5
+- 🎨 CSS3
+- ⚡ JavaScript
 
-### Database
-- MongoDB
+### ⚙️ Backend
 
-### Tools
-- VS Code
-- Git
-- GitHub
-- Postman
+- 🐍 Python
+- 🍶 Flask
+
+### 🗄️ Database
+
+- 🍃 MongoDB Atlas
+
+### 📚 Python Libraries
+
+- 🍃 PyMongo
+- 📊 Pandas
+- 📄 ReportLab
+- 📈 OpenPyXL
+- 🖼️ Pillow
+
+### 🔧 Tools
+
+- 💻 VS Code
+- 🧭 Git
+- 🐙 GitHub
+- ☁️ Render
+- 🧩 MongoDB Compass
 
 ---
 
 ## 📂 Project Structure
 
-Employee-Management-System/
+```text
+Employee Management System
 │
-├── client/
-│   ├── src/
-│   ├── public/
-│   └── package.json
+├── static
+│   ├── css
+│   └── uploads
 │
-├── server/
-│   ├── models/
-│   ├── routes/
-│   ├── controllers/
-│   ├── config/
-│   └── server.js
+├── templates
+│   ├── login.html
+│   ├── dashboard.html
+│   ├── employees.html
+│   ├── add_employee.html
+│   ├── edit_employee.html
+│   ├── reports.html
+│   └── base.html
 │
-├── package.json
+├── app.py
+├── requirements.txt
+├── vercel.json
 └── README.md
+```
 
 ---
 
 ## ⚙️ Installation
 
-### Clone Repository
+### 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/Employee-Management-System.git
+git clone https://github.com/Heus143/system.git
 ```
 
-### Install Backend
+### 2️⃣ Go to Project Folder
 
 ```bash
-cd server
-npm install
+cd system
 ```
 
-### Install Frontend
+### 3️⃣ Create Virtual Environment
 
 ```bash
-cd ../client
-npm install
+python -m venv venv
 ```
 
-### Run Backend
+### 4️⃣ Activate Virtual Environment
+
+Windows
 
 ```bash
-npm start
+venv\Scripts\activate
 ```
 
-### Run Frontend
+### 5️⃣ Install Dependencies
 
 ```bash
-npm start
+pip install -r requirements.txt
+```
+
+### 6️⃣ Run Project
+
+```bash
+python app.py
 ```
 
 ---
 
-## 📊 Workflow
+## 🔑 Default Login
 
-1. User opens the application.
-2. Employee details are entered.
-3. React sends requests to the Express API.
-4. Express performs CRUD operations.
-5. MongoDB stores employee information.
-6. Updated employee list is displayed instantly.
+**Username**
 
----
+```text
+admin
+```
 
-## 📸 Screens
+**Password**
 
-- Home
-- Employee Dashboard
-- Add Employee
-- Update Employee
-- Employee List
+```text
+admin123
+```
 
 ---
 
-## 🎯 Future Enhancements
+## 🔄 Project Workflow
 
-- JWT Authentication
-- Role-Based Access Control
-- Salary Management
-- Attendance Tracking
-- Payroll Module
-- Email Notifications
-- Cloud Deployment
+```text
+🔐 Admin Login
+       │
+       ▼
+📊 Dashboard
+       │
+       ▼
+👨‍💼 Employee Management
+       │
+ ┌─────┼─────┐
+ │     │     │
+ ▼     ▼     ▼
+➕ Add ✏️ Edit 🗑️ Delete
+       │
+       ▼
+🍃 MongoDB Atlas
+       │
+       ▼
+📈 Reports
+       │
+       ▼
+📄 PDF Export
+📊 Excel Export
+```
 
 ---
 
-## 👨‍💻 Author
+## 📈 Future Enhancements
 
-**Hemanth Kumar**
+- 📧 Email Notifications
+- 👥 Role-Based Authentication
+- 📅 Attendance Management
+- 📝 Leave Management
+- 💵 Payroll System
+- ☁️ Cloud Image Storage
+- 🔗 REST API
 
-GitHub:
-https://github.com/Heus143
 
-LinkedIn:
-https://www.linkedin.com/in/dhemanthkumar/
